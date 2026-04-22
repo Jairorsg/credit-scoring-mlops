@@ -8,8 +8,8 @@ name: Retrain Credit Scoring Model
 
 on:
   schedule:
-    - cron: "0 2 * * *"   # Todos los días a las 2:00 AM UTC
-  workflow_dispatch:        # Permite ejecución manual desde GitHub
+    - cron: "0 2 * * *"
+  workflow_dispatch:
 
 jobs:
   retrain:
@@ -17,9 +17,11 @@ jobs:
 
     steps:
 
-      # ── 1. Clonar el repositorio ────────────────────────
+      # ── 1. Clonar el repositorio (con LFS) ─────────────
       - name: Checkout código
         uses: actions/checkout@v4
+        with:
+          lfs: true
 
       # ── 2. Configurar Python ────────────────────────────
       - name: Configurar Python 3.11
@@ -39,8 +41,7 @@ jobs:
             joblib pyyaml python-dotenv \
             matplotlib seaborn pyarrow
 
-      # ── 4. Descargar datos frescos ──────────────────────
-      #   En producción real: reemplazar con conexión a BD
+      # ── 4. Verificar datos ──────────────────────────────
       - name: Verificar datos
         run: |
           if [ ! -f "data/raw/application_train.csv" ]; then
@@ -48,32 +49,33 @@ jobs:
             exit 1
           fi
           echo "✓ Datos encontrados"
-          python -c "import pandas as pd; df=pd.read_csv('data/raw/application_train.csv'); print(f'Filas: {len(df):,}')"
+          python -c "
+          import pandas as pd
+          df = pd.read_csv('data/raw/application_train.csv')
+          print(f'Filas   : {len(df):,}')
+          print(f'Columnas: {df.shape[1]}')
+          print(f'Primeras columnas: {list(df.columns[:5])}')
+          "
 
-      # ── 5. Ejecutar pipeline de entrenamiento ───────────
+      # ── 5. Reentrenar modelo ────────────────────────────
       - name: Reentrenar modelo
         run: |
           python pipelines/train_pipeline.py
 
-      # ── 6. Verificar métricas mínimas ───────────────────
-      - name: Verificar datos
+      # ── 6. Verificar calidad del modelo ─────────────────
+      - name: Verificar calidad del modelo
         run: |
           python - <<'EOF'
-          import pandas as pd
-          # Intentar leer con diferentes separadores
-          for sep in [',', ';', '\t']:
-              try:
-                  df = pd.read_csv('data/raw/application_train.csv', sep=sep, nrows=5)
-                  if df.shape[1] > 5:
-                      print(f"✓ Separador detectado: '{sep}'")
-                      print(f"✓ Columnas: {df.shape[1]}")
-                      print(f"✓ Primeras columnas: {list(df.columns[:5])}")
-                      break
-              except:
-                  continue
+          import json
+          with open("model/artifacts/metrics.json") as f:
+              m = json.load(f)
+          auc = m["roc_auc_test"]
+          print(f"ROC-AUC Test: {auc:.4f}")
+          assert auc >= 0.70, f"ROC-AUC {auc:.4f} por debajo del mínimo aceptable (0.70)"
+          print("✓ Calidad del modelo aceptable")
           EOF
 
-      # ── 7. Guardar artefactos en GitHub ─────────────────
+      # ── 7. Guardar artefactos ───────────────────────────
       - name: Subir artefactos del modelo
         uses: actions/upload-artifact@v4
         with:
@@ -85,7 +87,7 @@ jobs:
             model/artifacts/metrics.json
           retention-days: 30
 
-      # ── 8. Notificar resultado ───────────────────────────
+      # ── 8. Resumen final ────────────────────────────────
       - name: Resumen del entrenamiento
         run: |
           python - <<'EOF'
