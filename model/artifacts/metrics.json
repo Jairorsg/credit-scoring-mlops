@@ -1,0 +1,10 @@
+{
+  "roc_auc_test": 0.7671,
+  "roc_auc_cv_mean": 0.9299,
+  "roc_auc_cv_std": 0.0015,
+  "n_train": 293992,
+  "n_test": 61503,
+  "n_features": 128,
+  "decision_threshold": 0.5,
+  "timestamp": "2026-04-21T20:32:18.753561"
+}

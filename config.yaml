@@ -1,0 +1,100 @@
+# =============================================================================
+# Credit Scoring MLOps — Configuración central del proyecto
+# Este archivo es la única fuente de verdad para todos los parámetros.
+# Cargarlo con: import yaml; cfg = yaml.safe_load(open("config.yaml"))
+# =============================================================================
+
+project:
+  name: credit_scoring_pro
+  version: "1.0.0"
+  description: "Modelamiento Predictivo de Riesgo Crediticio con LightGBM y SHAP"
+  target_column: TARGET
+  random_seed: 42
+
+# ── Rutas de datos ────────────────────────────────────────────────────────
+data:
+  raw_path:            "data/raw/application_train.csv"
+  processed_train:     "data/processed/train_features.parquet"
+  processed_test:      "data/processed/test_features.parquet"
+
+# ── Feature Engineering ───────────────────────────────────────────────────
+features:
+  # Ratios financieros clave (perspectiva de economista)
+  ratios:
+    - name: PAYMENT_RATE          # Cuota / Ingreso anual
+      numerator:   AMT_ANNUITY
+      denominator: AMT_INCOME_TOTAL
+
+    - name: CREDIT_INCOME_RATIO   # Préstamo / Ingreso anual
+      numerator:   AMT_CREDIT
+      denominator: AMT_INCOME_TOTAL
+
+    - name: CREDIT_GOODS_RATIO    # Préstamo / Valor del bien
+      numerator:   AMT_CREDIT
+      denominator: AMT_GOODS_PRICE
+
+    - name: ANNUITY_CREDIT_RATIO  # Cuota / Préstamo total (proxy plazo)
+      numerator:   AMT_ANNUITY
+      denominator: AMT_CREDIT
+
+  # Columnas a descartar (ID, fechas, leakage)
+  drop_columns:
+    - SK_ID_CURR
+
+  # Imputación de valores faltantes
+  imputation:
+    numeric_strategy:    median
+    categorical_strategy: most_frequent
+
+# ── SMOTE (balanceo de clases) ────────────────────────────────────────────
+smote:
+  sampling_strategy: 0.3    # Ratio final: 30% morosos / 70% pagadores
+  k_neighbors: 5
+  random_state: 42
+
+# ── Modelo LightGBM ───────────────────────────────────────────────────────
+model:
+  type: lightgbm
+  cv_folds: 5
+  early_stopping_rounds: 50
+
+  params:
+    n_estimators:      1000
+    learning_rate:     0.05
+    num_leaves:        63
+    max_depth:         -1         # Sin límite (controlado por num_leaves)
+    min_child_samples: 50
+    subsample:         0.8
+    colsample_bytree:  0.8
+    reg_alpha:         0.1        # Regularización L1
+    reg_lambda:        0.1        # Regularización L2
+    class_weight:      balanced   # Peso por clase (complementa SMOTE)
+    random_state:      42
+    n_jobs:            -1
+    verbose:           -1
+
+  # Umbral de clasificación (ajustar según apetito de riesgo del negocio)
+  decision_threshold: 0.50
+
+  # Artefactos exportados
+  artifacts:
+    model_path:        "model/artifacts/lgbm_model.joblib"
+    preprocessor_path: "model/artifacts/preprocessor.joblib"
+    features_path:     "model/artifacts/feature_names.json"
+    report_path:       "model/reports/"
+
+# ── MLflow ────────────────────────────────────────────────────────────────
+mlflow:
+  tracking_uri:    "./mlruns/"
+  experiment_name: "credit_scoring_lgbm"
+  model_name:      "credit_risk_lgbm"
+  # Etapas: None → Staging → Production → Archived
+  promote_on_improvement: true
+  metric_to_compare: "roc_auc"
+
+# ── API FastAPI ───────────────────────────────────────────────────────────
+api:
+  host: "0.0.0.0"
+  port: 8000
+  reload: false     # true solo en desarrollo
+  log_level: "info"

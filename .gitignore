@@ -1,0 +1,39 @@
+# ── Entornos virtuales
+venv/
+.env
+*.env
+.env.*
+
+# ── Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# ── Jupyter
+.ipynb_checkpoints/
+
+# ── Datos sensibles
+data/raw/
+data/processed/
+data/interim/
+
+# ── Artefactos de modelos
+model/artifacts/*.joblib
+model/artifacts/*.pkl
+*.joblib
+*.pkl
+*.parquet
+
+# ── MLflow
+mlruns/
+
+# ── IDEs
+.vscode/settings.json
+.idea/
+
+# ── Sistema operativo
+.DS_Store
+Thumbs.db
