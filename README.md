@@ -45,8 +45,8 @@ Sistema completo de **scoring crediticio** que combina técnicas avanzadas de Ma
 
 ```
 ## Arquitectura MLOps
-
-> **PIPELINE AUTOMATIZADO (GitHub Actions)** > *Reentrenamiento programado diariamente a las 2:00 AM*
+> **PIPELINE AUTOMATIZADO (GitHub Actions)**
+> *Reentrenamiento programado diariamente a las 2:00 AM*
 
 | Ingesta | Ingeniería de features | Entrenamiento | Despliegue |
 | :--- | :--- | :--- | :--- |
