@@ -184,7 +184,7 @@ uvicorn app.main:app --reload --port 8000
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
 ### `POST /predict` — Predicción de riesgo crediticio
 
@@ -253,10 +253,17 @@ Registrar en MLflow
 
 El proyecto genera automáticamente 4 reportes en `model/reports/`:
 
-- `01_class_imbalance.png` — Distribución del desbalance de clases
-- `02_ratios_por_clase.png` — Distribución de ratios financieros por clase
-- `03_roc_confusion.png` — Curva ROC y matriz de confusión
-- `04_shap_summary.png` — Beeswarm y bar plot de valores SHAP
+### 1. Desbalance de clases
+![Desbalance de Clases](model/reports/01_class_imbalance.png)
+
+### 2. Ratios por clase
+![Ratios Financieros](model/reports/02_ratios_por_clase.png)
+
+### 3. Curva ROC y matriz de confusión
+![Curva ROC](model/reports/03_roc_confusion.png)
+
+### 4. Explicabilidad del modelo (SHAP)
+![Valores SHAP](model/reports/04_shap_summary.png)
 
 ---
 
