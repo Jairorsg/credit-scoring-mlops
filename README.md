@@ -45,8 +45,8 @@ Sistema completo de **scoring crediticio** que combina técnicas avanzadas de Ma
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│              PIPELINE AUTOMATIZADO (GitHub Actions)          │
-│                  Reentrenamiento diario 2:00 AM              │
+│              PIPELINE AUTOMATIZADO (GitHub Actions)         │
+│                  Reentrenamiento diario 2:00 AM             │
 ├──────────────┬──────────────┬──────────────┬────────────────┤
 │   Ingesta    │  Ingeniería  │ Entrenamiento│   Despliegue   │
 │              │  de features │              │                │
