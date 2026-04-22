@@ -43,15 +43,12 @@ Sistema completo de **scoring crediticio** que combina técnicas avanzadas de Ma
 
 ## Arquitectura MLOps
 
-```
-## Arquitectura MLOps
 > **PIPELINE AUTOMATIZADO (GitHub Actions)**
 > *Reentrenamiento programado diariamente a las 2:00 AM*
 
 | Ingesta | Ingeniería de features | Entrenamiento | Despliegue |
 | :--- | :--- | :--- | :--- |
 | • PostgreSQL<br>• Archivos CSV / API | • 4 Ratios financieros<br>• Valores SHAP | • SMOTE<br>• LightGBM<br>• MLflow | • FastAPI<br>• Contenedor Docker<br>• REST API |
-```
 
 ---
 
