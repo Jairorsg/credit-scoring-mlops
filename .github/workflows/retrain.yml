@@ -15,6 +15,10 @@ jobs:
   retrain:
     runs-on: ubuntu-latest
 
+    # ── FIX 1: MLflow no acepta file:// sin este env var ──
+    env:
+      MLFLOW_ALLOW_FILE_STORE: "true"
+
     steps:
 
       # ── 1. Clonar el repositorio (con LFS) ─────────────
@@ -76,13 +80,14 @@ jobs:
           EOF
 
       # ── 7. Guardar artefactos ───────────────────────────
+      # FIX 2: lgbm_model.joblib + preprocessor.joblib fueron
+      # reemplazados por un único lgbm_pipeline.joblib (ImbPipeline)
       - name: Subir artefactos del modelo
         uses: actions/upload-artifact@v4
         with:
           name: model-artifacts-${{ github.run_number }}
           path: |
-            model/artifacts/lgbm_model.joblib
-            model/artifacts/preprocessor.joblib
+            model/artifacts/lgbm_pipeline.joblib
             model/artifacts/feature_names.json
             model/artifacts/metrics.json
           retention-days: 30
@@ -97,9 +102,10 @@ jobs:
           print("════════════════════════════════════")
           print("  RESUMEN DEL REENTRENAMIENTO")
           print("════════════════════════════════════")
-          print(f"  ROC-AUC Test  : {m['roc_auc_test']:.4f}")
-          print(f"  CV medio      : {m['roc_auc_cv_mean']:.4f} ± {m['roc_auc_cv_std']:.4f}")
-          print(f"  Features      : {m['n_features']}")
-          print(f"  Timestamp     : {m['timestamp']}")
+          print(f"  ROC-AUC Test      : {m['roc_auc_test']:.4f}")
+          print(f"  CV medio (honesto): {m['roc_auc_cv_mean']:.4f} ± {m['roc_auc_cv_std']:.4f}")
+          print(f"  Threshold óptimo  : {m['threshold_optimal']:.4f}")
+          print(f"  Features          : {m['n_features']}")
+          print(f"  Timestamp         : {m['timestamp']}")
           print("════════════════════════════════════")
           EOF
