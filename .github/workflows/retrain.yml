@@ -1,8 +1,5 @@
-# ══════════════════════════════════════════════════════════
 #   Credit Scoring MLOps — Reentrenamiento automático diario
 #   Se ejecuta: todos los días a las 2:00 AM UTC
-#   También se puede lanzar manualmente desde GitHub
-# ══════════════════════════════════════════════════════════
 
 name: Retrain Credit Scoring Model
 
@@ -15,26 +12,26 @@ jobs:
   retrain:
     runs-on: ubuntu-latest
 
-    # ── FIX 1: MLflow no acepta file:// sin este env var ──
+    # FIX 1: MLflow no acepta file:// sin este env var
     env:
       MLFLOW_ALLOW_FILE_STORE: "true"
 
     steps:
 
-      # ── 1. Clonar el repositorio (con LFS) ─────────────
+      # ── 1. Clonar el repositorio (con LFS)
       - name: Checkout código
         uses: actions/checkout@v4
         with:
           lfs: true
 
-      # ── 2. Configurar Python ────────────────────────────
+      # 2. Configurar Python 3.11 con cache de pip
       - name: Configurar Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
 
-      # ── 3. Instalar dependencias ────────────────────────
+      # 3. Instalar dependencias
       - name: Instalar dependencias
         run: |
           pip install --upgrade pip
@@ -45,7 +42,7 @@ jobs:
             joblib pyyaml python-dotenv \
             matplotlib seaborn pyarrow
 
-      # ── 4. Verificar datos ──────────────────────────────
+      # 4. Verificar datos
       - name: Verificar datos
         run: |
           if [ ! -f "data/raw/application_train.csv" ]; then
@@ -61,12 +58,12 @@ jobs:
           print(f'Primeras columnas: {list(df.columns[:5])}')
           "
 
-      # ── 5. Reentrenar modelo ────────────────────────────
+      # 5. Reentrenar modelo
       - name: Reentrenar modelo
         run: |
           python pipelines/train_pipeline.py
 
-      # ── 6. Verificar calidad del modelo ─────────────────
+      # 6. Verificar calidad del modelo
       - name: Verificar calidad del modelo
         run: |
           python - <<'EOF'
@@ -79,9 +76,8 @@ jobs:
           print("✓ Calidad del modelo aceptable")
           EOF
 
-      # ── 7. Guardar artefactos ───────────────────────────
+      # 7. Guardar artefactos
       # FIX 2: lgbm_model.joblib + preprocessor.joblib fueron
-      # reemplazados por un único lgbm_pipeline.joblib (ImbPipeline)
       - name: Subir artefactos del modelo
         uses: actions/upload-artifact@v4
         with:
@@ -92,7 +88,7 @@ jobs:
             model/artifacts/metrics.json
           retention-days: 30
 
-      # ── 8. Resumen final ────────────────────────────────
+      # 8. Resumen final
       - name: Resumen del entrenamiento
         run: |
           python - <<'EOF'
